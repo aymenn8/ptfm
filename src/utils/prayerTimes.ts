@@ -1,4 +1,5 @@
 import { Toast, showToast } from "@raycast/api";
+import { showFailureToast } from "@raycast/utils";
 import axios from "axios";
 
 interface PrayerTimings {
@@ -29,12 +30,52 @@ interface LocationResponse {
 }
 
 function formatTime(time: string): string {
-  // Convert 24-hour format to 12-hour format with AM/PM
+  // Keep 24-hour format
   const [hours, minutes] = time.split(":");
-  const hour = parseInt(hours);
-  const ampm = hour >= 12 ? "PM" : "AM";
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
+  return `${hours}:${minutes}`;
+}
+
+function getTimeDifference(prayerTime: string): string {
+  const now = new Date();
+  const [hours, minutes] = prayerTime.split(":");
+  const prayerDate = new Date();
+  prayerDate.setHours(parseInt(hours));
+  prayerDate.setMinutes(parseInt(minutes));
+  prayerDate.setSeconds(0);
+
+  // If prayer time is earlier than current time, it's for tomorrow
+  if (prayerDate.getTime() < now.getTime()) {
+    prayerDate.setDate(prayerDate.getDate() + 1);
+  }
+
+  const diffMs = prayerDate.getTime() - now.getTime();
+  const diffMins = Math.round(diffMs / 60000); // Convert to minutes
+
+  if (diffMins === 0) {
+    return "now";
+  }
+
+  const hours_diff = Math.floor(Math.abs(diffMins) / 60);
+  const mins_diff = Math.abs(diffMins) % 60;
+  const isNextDay = prayerDate.getDate() !== now.getDate();
+
+  let timeStr = "";
+  if (hours_diff > 0) {
+    timeStr += `${hours_diff} hour${hours_diff === 1 ? "" : "s"}`;
+    if (mins_diff > 0) {
+      timeStr += ` and ${mins_diff} minute${mins_diff === 1 ? "" : "s"}`;
+    }
+  } else {
+    timeStr = `${mins_diff} minute${mins_diff === 1 ? "" : "s"}`;
+  }
+
+  if (isNextDay) {
+    return "tomorrow";
+  } else if (diffMins > 0) {
+    return `in ${timeStr}`;
+  } else {
+    return `${timeStr} ago`;
+  }
 }
 
 async function getLocation(): Promise<LocationResponse> {
@@ -83,6 +124,7 @@ export async function getPrayerTime(prayerName: keyof PrayerTimings) {
 
     const time = response.data.data.timings[prayerName];
     const formattedTime = formatTime(time);
+    const timeDiff = getTimeDifference(time);
 
     // Create a prayer-specific emoji mapping
     const emojiMap: Record<keyof PrayerTimings, string> = {
@@ -105,7 +147,7 @@ export async function getPrayerTime(prayerName: keyof PrayerTimings) {
     await showToast({
       style: Toast.Style.Success,
       title: `${emoji} ${prayerName} Prayer Time`,
-      message: `${formattedTime} in ${city}, ${country}`,
+      message: `${formattedTime} (${timeDiff})\nin ${city}, ${country}`,
       primaryAction: {
         title: "Refresh",
         shortcut: { modifiers: ["cmd"], key: "r" },
@@ -114,16 +156,14 @@ export async function getPrayerTime(prayerName: keyof PrayerTimings) {
     });
   } catch (error) {
     if (error instanceof Error && error.message === "Failed to get location") {
-      await showToast({
-        style: Toast.Style.Failure,
-        title: "❌ Location Error",
-        message: "Could not determine your location. Please check your internet connection.",
+      await showFailureToast("Could not determine your location", {
+        title: "Location Error",
+        message: "Please check your internet connection and try again.",
       });
     } else {
-      await showToast({
-        style: Toast.Style.Failure,
-        title: "❌ Error",
-        message: "Failed to fetch prayer time. Please try again.",
+      await showFailureToast("Failed to fetch prayer time", {
+        title: "Error",
+        message: "Please check your connection and try again.",
       });
     }
     console.error(error);
