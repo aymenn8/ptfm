@@ -13,31 +13,36 @@
     {
       "name": "fajr",
       "title": "Fajr Prayer Time",
-      "description": "Get Fajr prayer time",
+      "subtitle": "Prayer Times for Muslims",
+      "description": "Get Fajr prayer time based on your location",
       "mode": "no-view"
     },
     {
       "name": "dhuhr",
       "title": "Dhuhr Prayer Time",
-      "description": "Get Dhuhr prayer time",
+      "subtitle": "Prayer Times for Muslims",
+      "description": "Get Dhuhr prayer time based on your location",
       "mode": "no-view"
     },
     {
       "name": "asr",
       "title": "Asr Prayer Time",
-      "description": "Get Asr prayer time",
+      "subtitle": "Prayer Times for Muslims",
+      "description": "Get Asr prayer time based on your location",
       "mode": "no-view"
     },
     {
       "name": "maghrib",
       "title": "Maghrib Prayer Time",
-      "description": "Get Maghrib prayer time",
+      "subtitle": "Prayer Times for Muslims",
+      "description": "Get Maghrib prayer time based on your location",
       "mode": "no-view"
     },
     {
       "name": "isha",
       "title": "Isha Prayer Time",
-      "description": "Get Isha prayer time",
+      "subtitle": "Prayer Times for Muslims",
+      "description": "Get Isha prayer time based on your location",
       "mode": "no-view"
     }
   ],
